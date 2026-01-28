@@ -1,4 +1,4 @@
-import yfinance as yt
+import yfinance as yf
 import pandas as pd
 
 
@@ -16,7 +16,7 @@ def get_data():
     df.set_index("Symbol", inplace=True)
     if "^NSEI" not in name_list:
         name_list.append("^NSEI")
-    stock =yt.download(name_list,period ="1y")
+    stock =yf.download(name_list,period ="1y")
     price = stock["Close"]
     daily_returns =price.pct_change()
     df_stock =pd.DataFrame(daily_returns)
@@ -44,7 +44,7 @@ def get_data():
             "Symbol": stocks,
             "Beta": round(beta, 2),
             "Alpha": round(alpha, 2),
-            "Return %": round(stock_annual_return * 100, 2)
+            "Return 1Y %": round(stock_annual_return * 100, 2)
         })
 
     result_df = pd.DataFrame(result)
@@ -60,4 +60,24 @@ def get_data():
     invested_value =(df["Buy Price"] * df["Quantity"]).sum()
     result_df["Alocation %"]= round((result_df["Value"]/current_value)*100, 1)
     
-    return result_df, current_value, invested_value
+    return result_df, current_value, invested_value, banchmark
+
+def get_sector():
+    df = pd.read_csv("portfolio.csv")
+    name_list = df['Symbol'].tolist()
+
+    sector_data = []
+    for tick in name_list:
+        try:
+            ticker = yf.Ticker(tick)
+            sector = ticker.info.get('sector', 'N/A') 
+            temp ={'Symbol': tick, 'Sector': sector}
+            sector_data.append(temp)
+        except Exception as e:
+            print(e)
+
+    sector_data_df =pd.DataFrame(sector_data)
+    index_sector_data_df = sector_data_df.set_index('Symbol')
+    return index_sector_data_df
+
+get_sector()
