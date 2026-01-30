@@ -25,7 +25,10 @@ def get_data():
     portfolio = df_stock.drop(columns=["^NSEI"])
 
     # Calculations
+    years = 1
     variance = banchmark.var()
+    benchmark_mom = banchmark.tail(30)
+    Benchmark_mom_return = (benchmark_mom + 1).prod() - 1
     for stocks in portfolio.columns:
         stock_data = portfolio[stocks]
 
@@ -34,17 +37,23 @@ def get_data():
         beta =(covariance/variance)
 
         # Annual Return Calculation
-        stock_annual_return = stock_data.mean() * 252
+        stock_annual_return = stock_data.mean() * 252 * years
 
         # Calculate alpha
         expected_return = RISK_FREE_RATE + beta * (market_annual_return - RISK_FREE_RATE)
         alpha = stock_annual_return - expected_return
 
+        # momentum
+        stock_mom = stock_data.tail(30)
+        stock_mom_return = (stock_mom + 1).prod() - 1
+        mom_score =(stock_mom_return - Benchmark_mom_return) * 100
+
         result.append({
             "Symbol": stocks,
             "Beta": round(beta, 2),
             "Alpha": round(alpha, 2),
-            "Return 1Y %": round(stock_annual_return * 100, 2)
+            f"Return {years}Y %": round(stock_annual_return * 100, 2),
+            "Momentum Score 30D": round(mom_score, 2),
         })
 
     result_df = pd.DataFrame(result)
@@ -59,6 +68,8 @@ def get_data():
     
     invested_value =(df["Buy Price"] * df["Quantity"]).sum()
     result_df["Alocation %"]= round((result_df["Value"]/current_value)*100, 1)
+    banchmark = banchmark.to_frame(name="Price")
+
     
     return result_df, current_value, invested_value, banchmark
 
@@ -78,6 +89,7 @@ def get_sector():
 
     sector_data_df =pd.DataFrame(sector_data)
     index_sector_data_df = sector_data_df.set_index('Symbol')
+
     return index_sector_data_df
 
-get_sector()
+get_data()

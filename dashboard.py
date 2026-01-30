@@ -19,6 +19,10 @@ with st.container(border=True):
 
 
 with st.container(border=True):
+    fig = px.line(banchmark, x=banchmark.index, y=banchmark['Price'])
+    st.plotly_chart(fig)
+
+with st.container(border=True):
     co1, co2 =st.columns(2)
     with co1:
         co1.subheader("Stock-Distribution")
@@ -34,3 +38,4 @@ with st.container(border=True):
     table_height = (len(portfolio_table)+1)*35 
     st.subheader("Holdings:")
     st.dataframe(portfolio_table,use_container_width=True,height=table_height)
+
