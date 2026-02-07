@@ -19,6 +19,6 @@
     Sidebar Navigation: Anchor links to jump between sections.
     Tablet View: Bordered containers for grouped charts and graphs.</ul>
 </ls>
+<img width="1293" height="716" alt="Screenshot 2026-02-08 at 12 32 20 AM" src="https://github.com/user-attachments/assets/7f699a22-c15b-4dd6-b69e-e07f2bbe3af2" />
 
-<img width="1280" height="777" alt="Screenshot 2026-01-31 at 4 17 44 AM" src="https://github.com/user-attachments/assets/42b79051-771c-4ab0-8f6b-6bd0b3a5c1bd" />
 <img width="1267" height="766" alt="Screenshot 2026-01-31 at 4 18 04 AM" src="https://github.com/user-attachments/assets/8af050e5-c89e-4f2b-a630-03526d6574bc" />
