@@ -70,14 +70,15 @@ def get_data():
     
     invested_value =(df["Buy Price"] * df["Quantity"]).sum()
     result_df["Alocation %"]= round((result_df["Value"]/current_value)*100, 1)
-    banchmark_total = banchmark_total.to_frame(name="Price")
+    banchmark_total = banchmark_total.to_frame(name="Nifty")
+    portfolio_total=pd.concat([portfolio_total,banchmark_total],axis= 1)
+    Distribution_index =get_sector(name_list)
+    result_df =pd.concat([Distribution_index,result_df],axis= 1)
+    result_df=result_df.drop(["^NSEI"])
 
-    
-    return result_df, portfolio_total, invested_value, banchmark_total
+    return result_df, portfolio_total, invested_value
 
-def get_sector():
-    df = pd.read_csv("portfolio.csv")
-    name_list = df['Symbol'].tolist()
+def get_sector(name_list):
 
     sector_data = []
     for tick in name_list:

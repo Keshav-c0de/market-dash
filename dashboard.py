@@ -7,10 +7,11 @@ st.set_page_config(page_title="My Portfolio", layout="wide")
 st.title("🚀 quantitative-portfolio-analyzer")
 
 with st.spinner("Crunching the numbers..."):
-    portfolio_table, portfolio_total, invested_value, banchmark = get_data()
+    portfolio_table, portfolio_total, invested_value = get_data()
     current_value = portfolio_total["Total"].dropna().iloc[36]
-    sector_df = get_sector()
-    st.write(portfolio_total)
+
+
+    
 with st.container(border=True):
     col1, col2, col3 =st.columns(3)
     col1.metric("Total Investment", f"₹{invested_value:,.0f}")
@@ -18,22 +19,40 @@ with st.container(border=True):
     Total = current_value-invested_value
     col3.metric("Total P&L", f"₹{Total:+,.2f}")
 
+col_1,col_2 =st.columns(2)
 
-with st.container(border=True):
-    fig = px.line(banchmark, x=banchmark.index, y=banchmark['Price'])
-    st.plotly_chart(fig)
+with col_1:
+    with st.container(border=True):
+    
+        df_norm = portfolio_total.copy()
 
-with st.container(border=True):
-    co1, co2 =st.columns(2)
-    with co1:
-        co1.subheader("Stock-Distribution")
-        fig1 = px.pie(portfolio_table, names=portfolio_table.index, values ="Alocation %",hole=0.5)
+        df_norm['Total_Pct'] = (df_norm['Total'] / df_norm['Total'].iloc[0]) * 100
+        df_norm['Nifty_Pct'] = (df_norm['Nifty'] / df_norm['Nifty'].iloc[0]) * 100
+
+        fig_norm = px.line(
+                df_norm.reset_index(), 
+                x=df_norm.index.name or "Date", 
+                y=['Total_Pct', 'Nifty_Pct'],
+                title="Relative Performance: Portfolio vs Nifty (Base 100)",
+                labels={"value": "Growth (%)", "variable": "Asset"})
+
+        fig_norm.update_layout(xaxis_fixedrange=True, yaxis_fixedrange=True)
+        st.plotly_chart(fig_norm, use_container_width=True)
+
+with col_2:
+    with st.container(border=True):
+
+        df_clean = portfolio_table.reset_index()
+        fig1 = px.sunburst(df_clean, 
+                path=["Sector","Symbol"], 
+                values ="Alocation %", 
+                title= 'Stock-Distribution',)
+
+        fig1.update_traces(textinfo="label+percent entry")
+        fig1.update_layout(margin=dict(t=40, l=0, r=0, b=0))
+
         st.plotly_chart(fig1, use_container_width=True)
-    with co2:
-        co2.subheader("Sector-Distribution")
-        fig2 = px.pie(sector_df, names= sector_df["Sector"])
-        st.plotly_chart(fig2, use_container_width=True)
-        
+
 
 with st.container(border=True):
     table_height = (len(portfolio_table)+1)*35 
