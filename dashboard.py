@@ -7,9 +7,10 @@ st.set_page_config(page_title="My Portfolio", layout="wide")
 st.title("🚀 quantitative-portfolio-analyzer")
 
 with st.spinner("Crunching the numbers..."):
-    portfolio_table, current_value, invested_value, banchmark = get_data()
+    portfolio_table, portfolio_total, invested_value, banchmark = get_data()
+    current_value = portfolio_total["Total"].dropna().iloc[36]
     sector_df = get_sector()
-
+    st.write(portfolio_total)
 with st.container(border=True):
     col1, col2, col3 =st.columns(3)
     col1.metric("Total Investment", f"₹{invested_value:,.0f}")
@@ -26,7 +27,7 @@ with st.container(border=True):
     co1, co2 =st.columns(2)
     with co1:
         co1.subheader("Stock-Distribution")
-        fig1 = px.pie(portfolio_table, names=portfolio_table.index, values ="Alocation %")
+        fig1 = px.pie(portfolio_table, names=portfolio_table.index, values ="Alocation %",hole=0.5)
         st.plotly_chart(fig1, use_container_width=True)
     with co2:
         co2.subheader("Sector-Distribution")

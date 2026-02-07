@@ -18,6 +18,8 @@ def get_data():
         name_list.append("^NSEI")
     stock =yf.download(name_list,period ="1y")
     price = stock["Close"]
+    portfolio_total =get_chart_data(price,df['Quantity'])
+    banchmark_total =price["^NSEI"]
     daily_returns =price.pct_change()
     df_stock =pd.DataFrame(daily_returns)
     df_stock =df_stock.dropna()
@@ -68,10 +70,10 @@ def get_data():
     
     invested_value =(df["Buy Price"] * df["Quantity"]).sum()
     result_df["Alocation %"]= round((result_df["Value"]/current_value)*100, 1)
-    banchmark = banchmark.to_frame(name="Price")
+    banchmark_total = banchmark_total.to_frame(name="Price")
 
     
-    return result_df, current_value, invested_value, banchmark
+    return result_df, portfolio_total, invested_value, banchmark_total
 
 def get_sector():
     df = pd.read_csv("portfolio.csv")
@@ -91,5 +93,13 @@ def get_sector():
     index_sector_data_df = sector_data_df.set_index('Symbol')
 
     return index_sector_data_df
+
+
+def get_chart_data(price,Quantity):
+    Quantity = pd.Series(Quantity)
+    price_total = price.mul(Quantity,axis=1)
+    price_total["Total"]= price_total.sum(axis=1,skipna= True)
+    price_total =price_total.drop("^NSEI",axis=1)
+    return price_total
 
 get_data()
