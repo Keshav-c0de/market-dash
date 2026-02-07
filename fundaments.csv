@@ -1,0 +1,10 @@
+'marketCap', 
+'trailingPE', 
+'returnOnEquity', 
+'priceToBook',
+'operatingCashflow',
+'freeCashflow',
+'dividendYield',
+'priceToSalesTrailing12Months',
+'sector',
+'averageAnalystRating'

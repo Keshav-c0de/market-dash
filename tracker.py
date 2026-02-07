@@ -1,6 +1,6 @@
 import yfinance as yf
 import pandas as pd
-
+import time
 
 def get_data():
 
@@ -76,7 +76,7 @@ def get_data():
     result_df =pd.concat([Distribution_index,result_df],axis= 1)
     result_df=result_df.drop(["^NSEI"])
 
-    return result_df, portfolio_total, invested_value
+    return result_df, portfolio_total, invested_value, get_fundaments(name_list)
 
 def get_sector(name_list):
 
@@ -95,12 +95,35 @@ def get_sector(name_list):
 
     return index_sector_data_df
 
-
 def get_chart_data(price,Quantity):
     Quantity = pd.Series(Quantity)
     price_total = price.mul(Quantity,axis=1)
     price_total["Total"]= price_total.sum(axis=1,skipna= True)
     price_total =price_total.drop("^NSEI",axis=1)
     return price_total
+
+def get_fundaments(name_list):
+    fundaments_list = []
+    new_entry = []
+    info_list = ['marketCap', 'trailingPE', 'priceToBook', 'dividendYield', 'priceToSalesTrailing12Months', 'sector', 'averageAnalystRating', 'returnOnEquity' ]
+
+    try:
+        if "^NSEI" in name_list:
+            name_list.remove("^NSEI")
+
+        for name in name_list:
+            ticker = yf.Ticker(name)
+            current_stock_data = {"Symbol": name} 
+            info_dict = ticker.info
+            for metric_key in info_list:
+                value = info_dict.get(metric_key, 'N/A')
+                current_stock_data[metric_key] = value 
+
+            fundaments_list.append(current_stock_data)
+    except Exception as e:
+        print(e)
+
+    funda_df =pd.DataFrame(fundaments_list)
+    return funda_df
 
 get_data()
