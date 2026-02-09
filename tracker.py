@@ -105,7 +105,7 @@ def get_chart_data(price,Quantity):
 def get_fundaments(name_list):
     fundaments_list = []
     new_entry = []
-    info_list = ['marketCap', 'trailingPE', 'priceToBook', 'dividendYield', 'priceToSalesTrailing12Months', 'sector', 'averageAnalystRating', 'returnOnEquity' ]
+    info_list = ['marketCap', 'trailingPE', 'priceToBook', 'dividendYield', 'priceToSalesTrailing12Months', 'sector', 'averageAnalystRating', 'returnOnEquity' , 'revenueGrowth' , 'earningsGrowth']
 
     try:
         if "^NSEI" in name_list:
@@ -116,7 +116,7 @@ def get_fundaments(name_list):
             current_stock_data = {"Symbol": name} 
             info_dict = ticker.info
             for metric_key in info_list:
-                value = info_dict.get(metric_key, 'N/A')
+                value = info_dict.get(metric_key, None)
                 current_stock_data[metric_key] = value 
 
             fundaments_list.append(current_stock_data)
@@ -124,6 +124,18 @@ def get_fundaments(name_list):
         print(e)
 
     funda_df =pd.DataFrame(fundaments_list)
+    funda_df["Market Cap"] =(funda_df["marketCap"]/10000000).round(0).astype(str) + " Cr"
+    funda_df["P/E"] =funda_df["trailingPE"].round(0)
+    funda_df["returnOnEquity"] = pd.to_numeric(funda_df["returnOnEquity"], errors='coerce')
+    funda_df["RoC"] = funda_df["returnOnEquity"].apply(lambda x: f"{round(x * 100, 2)}%" if pd.notnull(x) else "N/A")
+    funda_df["Dividend Yield"] =funda_df["dividendYield"].astype(str)+ "%"
+    funda_df["Price to Sales"] =funda_df["priceToSalesTrailing12Months"].round(1)
+    funda_df["Sales Growth"] =funda_df["revenueGrowth"].apply(lambda x: f"{round(x * 100, 2)}%" if pd.notnull(x) else "N/A")
+    funda_df["Profit Growth"] =funda_df["earningsGrowth"].apply(lambda x: f"{round(x * 100, 2)}%" if pd.notnull(x) else "N/A")
+    funda_df["Rating"] = funda_df["averageAnalystRating"]
+    funda_df["Sector"] = funda_df["sector"]
+
+    funda_df = funda_df.drop(columns= info_list, errors='ignore')
     return funda_df
 
 get_data()
