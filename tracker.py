@@ -2,63 +2,30 @@ import yfinance as yf
 import pandas as pd
 import time
 
-def get_data():
+name_list = []
 
-    name_list = []
+def get_data():
+    global name_list
+    
+    df = pd.read_csv("portfolio.csv")
+    name_list = df['Symbol'].tolist()
+
     beta = []
     market_annual_return = 0.1
     RISK_FREE_RATE = 0.06
     result =[]
 
     # Getting Data
-    df = pd.read_csv("portfolio.csv")
-    name_list = df['Symbol'].tolist()
     df.set_index("Symbol", inplace=True)
     if "^NSEI" not in name_list:
         name_list.append("^NSEI")
     stock =yf.download(name_list,period ="1y")
     price = stock["Close"]
+
     portfolio_total =get_chart_data(price,df['Quantity'])
     banchmark_total =price["^NSEI"]
-    daily_returns =price.pct_change()
-    df_stock =pd.DataFrame(daily_returns)
-    df_stock =df_stock.dropna()
-    banchmark = df_stock["^NSEI"]
-    portfolio = df_stock.drop(columns=["^NSEI"])
 
-    # Calculations
-    years = 1
-    variance = banchmark.var()
-    benchmark_mom = banchmark.tail(30)
-    Benchmark_mom_return = (benchmark_mom + 1).prod() - 1
-    for stocks in portfolio.columns:
-        stock_data = portfolio[stocks]
-
-        # Calculate beta
-        covariance = stock_data.cov(banchmark)
-        beta =(covariance/variance)
-
-        # Annual Return Calculation
-        stock_annual_return = stock_data.mean() * 252 * years
-
-        # Calculate alpha
-        expected_return = RISK_FREE_RATE + beta * (market_annual_return - RISK_FREE_RATE)
-        alpha = stock_annual_return - expected_return
-
-        # momentum
-        stock_mom = stock_data.tail(30)
-        stock_mom_return = (stock_mom + 1).prod() - 1
-        mom_score =(stock_mom_return - Benchmark_mom_return) * 100
-
-        result.append({
-            "Symbol": stocks,
-            "Beta": round(beta, 2),
-            "Alpha": round(alpha, 2),
-            f"Return {years}Y %": round(stock_annual_return * 100, 2),
-            "Momentum Score 30D": round(mom_score, 2),
-        })
-
-    result_df = pd.DataFrame(result)
+    result_df = pd.DataFrame({"Symbol" :name_list})
     result_df.set_index("Symbol", inplace=True)
     # adding last price
     price_df = pd.DataFrame(round(price,2))
@@ -76,7 +43,7 @@ def get_data():
     result_df =pd.concat([Distribution_index,result_df],axis= 1)
     result_df=result_df.drop(["^NSEI"])
 
-    return result_df, portfolio_total, invested_value, get_fundaments(name_list)
+    return result_df, portfolio_total, invested_value, get_fundaments(name_list) , cal_metrixs(price)
 
 def get_sector(name_list):
 
@@ -138,4 +105,66 @@ def get_fundaments(name_list):
     funda_df = funda_df.drop(columns= info_list, errors='ignore')
     return funda_df
 
-get_data()
+def cal_metrixs(price):
+    beta = []
+    market_annual_return = 0.1
+    RISK_FREE_RATE = 0.06
+    result =[]
+
+
+    daily_returns =price.pct_change()
+    df_stock =pd.DataFrame(daily_returns)
+    df_stock =df_stock.dropna()
+    banchmark = df_stock["^NSEI"]
+    portfolio = df_stock.drop(columns=["^NSEI"])
+
+    years = 1
+    variance = banchmark.var()
+    benchmark_mom = banchmark.tail(30)
+    Benchmark_mom_return = (benchmark_mom + 1).prod() - 1
+
+    for stocks in portfolio.columns:
+        stock_data = portfolio[stocks]
+
+        # Calculate beta
+        covariance = stock_data.cov(banchmark)
+        beta =(covariance/variance)
+
+        # Annual Return Calculation
+        stock_annual_return = stock_data.mean() * 252 * years
+
+        # Calculate alpha
+        expected_return = RISK_FREE_RATE + beta * (market_annual_return - RISK_FREE_RATE)
+        alpha = stock_annual_return - expected_return
+
+        # momentum
+        stock_mom = stock_data.tail(30)
+        stock_mom_return = (stock_mom + 1).prod() - 1
+        mom_score =(stock_mom_return - Benchmark_mom_return) * 100
+
+        result.append({
+            "Symbol": stocks,
+            "Beta": round(beta, 2),
+            "Alpha": round(alpha, 2),
+            f"Return {years}Y %": round(stock_annual_return * 100, 2),
+            "Momentum Score 30D": round(mom_score, 2),
+        })
+
+    cal_df =pd.DataFrame(result)
+    return cal_df
+
+def is_valid_symbol(symbol):
+    try:
+        ticker = yf.Ticker(symbol)
+        data = ticker.history(period="1d")
+        if not data.empty and symbol.upper() not in name_list:
+            return True
+    except:
+        return False
+
+def add_stock(symbol,quantity,buying_price):
+    new_data = {'Symbol': [symbol], 'Quantity': [quantity], 'Buy Price': [buying_price]}
+    new_df = pd.DataFrame(new_data)
+    new_df.to_csv("portfolio.csv", mode='a', index=False, header=False)
+
+    
