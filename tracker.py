@@ -1,6 +1,7 @@
 import yfinance as yf
 import pandas as pd
 import time
+import streamlit as st
 
 name_list = []
 
@@ -45,6 +46,7 @@ def get_data():
 
     return result_df, portfolio_total, invested_value, get_fundaments(name_list) , cal_metrixs(price)
 
+@st.cache_data
 def get_sector(name_list):
 
     sector_data = []
@@ -62,6 +64,7 @@ def get_sector(name_list):
 
     return index_sector_data_df
 
+@st.cache_data
 def get_chart_data(price,Quantity):
     Quantity = pd.Series(Quantity)
     price_total = price.mul(Quantity,axis=1)
@@ -69,6 +72,7 @@ def get_chart_data(price,Quantity):
     price_total =price_total.drop("^NSEI",axis=1)
     return price_total
 
+@st.cache_data
 def get_fundaments(name_list):
     fundaments_list = []
     new_entry = []
@@ -105,6 +109,7 @@ def get_fundaments(name_list):
     funda_df = funda_df.drop(columns= info_list, errors='ignore')
     return funda_df
 
+@st.cache_data
 def cal_metrixs(price):
     beta = []
     market_annual_return = 0.1
@@ -153,6 +158,8 @@ def cal_metrixs(price):
     cal_df =pd.DataFrame(result)
     return cal_df
 
+
+
 def is_valid_symbol(symbol):
     try:
         ticker = yf.Ticker(symbol)
@@ -167,4 +174,17 @@ def add_stock(symbol,quantity,buying_price):
     new_df = pd.DataFrame(new_data)
     new_df.to_csv("portfolio.csv", mode='a', index=False, header=False)
 
+def is_valid_delete_symbol(symbol):
+    try:
+        df = pd.read_csv("portfolio.csv")
+        name_list = df['Symbol'].tolist()
+        if symbol in name_list:
+            return True
+    except:
+        return False
+
+def delete_stock(symbol):
+    df = pd.read_csv("portfolio.csv")
+    df = df[df["Symbol"] != symbol]
+    df.to_csv("portfolio.csv", index=False)
     
